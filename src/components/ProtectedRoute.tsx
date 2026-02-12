@@ -1,0 +1,12 @@
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
+
+export default function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: "admin" }) {
+  const { user, loading, role } = useAuth();
+
+  if (loading) return <div className="flex items-center justify-center h-screen text-muted-foreground">Loading...</div>;
+  if (!user) return <Navigate to="/auth" replace />;
+  if (requiredRole && role !== requiredRole) return <Navigate to="/dashboard" replace />;
+
+  return <>{children}</>;
+}
