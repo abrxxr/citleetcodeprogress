@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Trophy, Code, Zap } from "lucide-react";
@@ -15,13 +15,13 @@ export default function Auth() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
-  const [registerForm, setRegisterForm] = useState({ name: "", registerNumber: "", email: "", password: "", confirmPassword: "" });
+  const [loginForm, setLoginForm] = useState({ registerNumber: "", password: "" });
+  const [registerForm, setRegisterForm] = useState({ registerNumber: "", password: "", confirmPassword: "" });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await signIn(loginForm.email, loginForm.password);
+    const { error } = await signIn(loginForm.registerNumber, loginForm.password);
     setLoading(false);
     if (error) {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
@@ -41,12 +41,13 @@ export default function Auth() {
       return;
     }
     setLoading(true);
-    const { error } = await signUp(registerForm.email, registerForm.password, registerForm.name, registerForm.registerNumber);
+    const { error } = await signUp(registerForm.registerNumber, registerForm.password);
     setLoading(false);
     if (error) {
       toast({ title: "Registration failed", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Check your email", description: "We sent you a confirmation link to verify your account." });
+      toast({ title: "Account created!", description: "You can now log in with your register number." });
+      navigate("/dashboard");
     }
   };
 
@@ -75,8 +76,8 @@ export default function Auth() {
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <Input id="login-email" type="email" required value={loginForm.email} onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })} placeholder="you@example.com" />
+                    <Label htmlFor="login-reg">Register Number</Label>
+                    <Input id="login-reg" required value={loginForm.registerNumber} onChange={(e) => setLoginForm({ ...loginForm, registerNumber: e.target.value })} placeholder="e.g. 24AM0004" className="uppercase" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="login-password">Password</Label>
@@ -91,16 +92,9 @@ export default function Auth() {
               <TabsContent value="register">
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="reg-name">Full Name</Label>
-                    <Input id="reg-name" required value={registerForm.name} onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })} placeholder="John Doe" />
-                  </div>
-                  <div className="space-y-2">
                     <Label htmlFor="reg-register">Register Number</Label>
-                    <Input id="reg-register" required value={registerForm.registerNumber} onChange={(e) => setRegisterForm({ ...registerForm, registerNumber: e.target.value })} placeholder="REG2024001" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-email">Email</Label>
-                    <Input id="reg-email" type="email" required value={registerForm.email} onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })} placeholder="you@example.com" />
+                    <Input id="reg-register" required value={registerForm.registerNumber} onChange={(e) => setRegisterForm({ ...registerForm, registerNumber: e.target.value })} placeholder="e.g. 24AM0004" className="uppercase" />
+                    <p className="text-xs text-muted-foreground">Only approved students can register</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="reg-password">Password</Label>
