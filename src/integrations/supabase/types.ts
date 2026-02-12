@@ -38,6 +38,27 @@ export type Database = {
         }
         Relationships: []
       }
+      allowed_students: {
+        Row: {
+          id: string
+          name: string
+          register_number: string
+          section: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          register_number: string
+          section?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          register_number?: string
+          section?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
