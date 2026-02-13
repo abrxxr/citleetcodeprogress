@@ -11,7 +11,7 @@ interface AuthContextType {
   role: UserRole | null;
   profile: { name: string; register_number: string; email: string; avatar_url: string | null } | null;
   signUp: (registerNumber: string, password: string) => Promise<{ error: any }>;
-  signIn: (registerNumber: string, password: string) => Promise<{ error: any }>;
+  signIn: (registerNumber: string, password: string, isAdmin?: boolean) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -95,8 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signIn = async (registerNumber: string, password: string) => {
-    const email = regToEmail(registerNumber.toUpperCase());
+  const signIn = async (registerNumber: string, password: string, isAdmin = false) => {
+    const email = isAdmin
+      ? `${registerNumber.toLowerCase()}@teacher.elitecontest.app`
+      : regToEmail(registerNumber.toUpperCase());
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
   };
