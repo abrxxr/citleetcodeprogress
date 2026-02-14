@@ -4,7 +4,17 @@ import { Navigate } from "react-router-dom";
 export default function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: "admin" }) {
   const { user, loading, role } = useAuth();
 
-  if (loading) return <div className="flex items-center justify-center h-screen text-muted-foreground">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) return <Navigate to="/auth" replace />;
   if (requiredRole && role !== requiredRole) return <Navigate to="/dashboard" replace />;
 
