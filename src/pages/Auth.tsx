@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Trophy, Code, Zap, Shield } from "lucide-react";
 
 export default function Auth() {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user, role, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [mode, setMode] = useState<"student" | "admin">("student");
 
   const [loginForm, setLoginForm] = useState({ registerNumber: "", password: "" });
@@ -22,16 +22,22 @@ export default function Auth() {
   const [adminSetup, setAdminSetup] = useState<"login" | "setup">("login");
   const [adminSetupForm, setAdminSetupForm] = useState({ username: "", password: "", confirmPassword: "" });
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      navigate(role === "admin" ? "/admin" : "/dashboard", { replace: true });
+    }
+  }, [user, role, loading, navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
     const { error } = await signIn(loginForm.registerNumber, loginForm.password);
-    setLoading(false);
+    setSubmitting(false);
     if (error) {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
-    } else {
-      navigate("/dashboard");
     }
+    // Navigation handled by useEffect above
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -44,28 +50,25 @@ export default function Auth() {
       toast({ title: "Password must be at least 6 characters", variant: "destructive" });
       return;
     }
-    setLoading(true);
+    setSubmitting(true);
     const { error } = await signUp(registerForm.registerNumber, registerForm.password);
-    setLoading(false);
+    setSubmitting(false);
     if (error) {
       toast({ title: "Registration failed", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Account created!", description: "You can now log in." });
-      navigate("/dashboard");
     }
   };
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    const email = `${adminForm.username.toLowerCase()}@teacher.elitecontest.app`;
+    setSubmitting(true);
     const { error } = await signIn(adminForm.username, adminForm.password, true);
-    setLoading(false);
+    setSubmitting(false);
     if (error) {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
-    } else {
-      navigate("/admin");
     }
+    // Navigation handled by useEffect above
   };
 
   const handleAdminSetup = async (e: React.FormEvent) => {
@@ -78,7 +81,7 @@ export default function Auth() {
       toast({ title: "Password must be at least 6 characters", variant: "destructive" });
       return;
     }
-    setLoading(true);
+    setSubmitting(true);
     try {
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/setup-admin`, {
         method: "POST",
@@ -93,8 +96,11 @@ export default function Auth() {
     } catch (err: any) {
       toast({ title: "Setup failed", description: err.message, variant: "destructive" });
     }
-    setLoading(false);
+    setSubmitting(false);
   };
+
+  // Don't show auth page if already logged in
+  if (!loading && user) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -139,8 +145,8 @@ export default function Auth() {
                       <Label htmlFor="login-password">Password</Label>
                       <Input id="login-password" type="password" required value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} placeholder="••••••" />
                     </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Signing in..." : "Sign In"}
+                    <Button type="submit" className="w-full" disabled={submitting}>
+                      {submitting ? "Signing in..." : "Sign In"}
                     </Button>
                   </form>
                 </TabsContent>
@@ -160,8 +166,8 @@ export default function Auth() {
                       <Label htmlFor="reg-confirm">Confirm Password</Label>
                       <Input id="reg-confirm" type="password" required value={registerForm.confirmPassword} onChange={(e) => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })} placeholder="••••••" />
                     </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Creating account..." : "Create Account"}
+                    <Button type="submit" className="w-full" disabled={submitting}>
+                      {submitting ? "Creating account..." : "Create Account"}
                     </Button>
                   </form>
                 </TabsContent>
@@ -188,8 +194,8 @@ export default function Auth() {
                       <Label>Password</Label>
                       <Input type="password" required value={adminForm.password} onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })} placeholder="••••••" />
                     </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Signing in..." : "Sign In as Teacher"}
+                    <Button type="submit" className="w-full" disabled={submitting}>
+                      {submitting ? "Signing in..." : "Sign In as Teacher"}
                     </Button>
                   </form>
                 </TabsContent>
@@ -209,8 +215,8 @@ export default function Auth() {
                       <Label>Confirm Password</Label>
                       <Input type="password" required value={adminSetupForm.confirmPassword} onChange={(e) => setAdminSetupForm({ ...adminSetupForm, confirmPassword: e.target.value })} placeholder="••••••" />
                     </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Setting up..." : "Create Admin Account"}
+                    <Button type="submit" className="w-full" disabled={submitting}>
+                      {submitting ? "Setting up..." : "Create Admin Account"}
                     </Button>
                   </form>
                 </TabsContent>
